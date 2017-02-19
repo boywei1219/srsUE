@@ -100,21 +100,19 @@ void bsr_proc::timer_expired(uint32_t timer_id) {
 // Checks if data is available for a a channel with higher priority than others 
 bool bsr_proc::check_highest_channel() {
   int pending_data_lcid = -1; 
+  int highest_pri = 0;
   
   for (int i=0;i<MAX_LCID && pending_data_lcid == -1;i++) {
     if (lcg[i] >= 0) {
       if (rlc->get_buffer_state(i) > 0) {
-        pending_data_lcid = i; 
-        for (int j=0;j<MAX_LCID;j++) {
-          if (rlc->get_buffer_state(j) > 0) {
-            if (priorities[j] > priorities[i]) {
-              pending_data_lcid = -1; 
-            }
-          }
+        if(priorities[i] > highest_pri){
+            pending_data_lcid = i;
+            highest_pri = priorities[i]; 
         }
       }      
     }
   }
+  
   if (pending_data_lcid >= 0) {
     // If there is new data available for this logical channel 
     uint32_t nbytes = rlc->get_buffer_state(pending_data_lcid);
